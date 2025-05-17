@@ -133,7 +133,7 @@ To add new incident categories, modify the `classify_category` function in `app/
 
 ## License
 
-MIT License
+APACHE 2.0 [LICENSE]
 
 ## Contributing
 
