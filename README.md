@@ -56,7 +56,7 @@ incident-management/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/incident-management.git
+   git clone https://github.com/SBOLife/incident-management.git
    cd incident-management
    ```
 
@@ -68,7 +68,7 @@ incident-management/
 
 3. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   poetry install
    ```
 
 4. Initialize the database:
