@@ -2,16 +2,24 @@
 Incident classifier service module.
 
 This module provides functionality to automatically classify incidents based on their description.
-It uses keyword matching to determine the appropriate category for each incident.
+It uses a pre-trained LLM (Zero-Shot Classification) to determine the most appropriate category.
 """
 
-def classify_category(description) -> str:
+from transformers import pipeline
+
+# Initialize the zero-shot classifier (loads only once)
+classifier = pipeline(
+    "zero-shot-classification",
+    model="joeddav/xlm-roberta-large-xnli",  # Multilingual model
+    device="cpu"  # Use "cuda" if you have GPU
+)
+
+def classify_category(description: str) -> str:
     """
-    Classify an incident into a category based on its description.
+    Classify an incident into a category using a LLM-based zero-shot classifier.
     
     This function analyzes the incident description text and assigns a category
-    based on keyword matching. It performs case-insensitive matching against
-    common terms associated with different types of incidents.
+    using natural language understanding (no keyword matching required).
     
     Args:
         description (str): The incident description text to analyze.
@@ -27,18 +35,22 @@ def classify_category(description) -> str:
     Examples:
         >>> classify_category("The network connection is down")
         "Network Issue"
-        >>> classify_category("Unable to log into the application")
+        >>> classify_category("I can't authenticate with my credentials")
         "Login Issue"
-        >>> classify_category("Unknown problem occurred")
-        "Other"
+        >>> classify_category("The database is unresponsive")
+        "Server Issue"
     """
-    if "network" in description.lower():
-        return "Network Issue"
-    elif "server" in description.lower():
-        return "Server Issue"
-    elif "software" in description.lower():
-        return "Software Issue"
-    elif "login" in description.lower():
-        return "Login Issue"
-    else:
-        return "Other"
+    # Candidate categories (can be extended)
+    candidate_labels = [
+        "Network Issue",
+        "Server Issue",
+        "Software Issue",
+        "Login Issue",
+        "Other"
+    ]
+    
+    # Get classification from the model
+    result = classifier(description, candidate_labels, multi_label=False)
+    
+    # Return the highest-confidence label
+    return result['labels'][0]
