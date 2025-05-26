@@ -21,6 +21,7 @@ This incident management system provides a robust platform for organizations to 
 - **Database**: SQLite (configurable)
 - **Authentication**: JWT (JSON Web Tokens)
 - **ORM**: SQLAlchemy
+- **AI Classification**: Hugging Face Transformers with XLM-RoBERTa model
 
 ## Project Structure
 
@@ -105,13 +106,13 @@ The system uses JWT tokens for authentication. To access protected endpoints:
 
 ## Incident Classification
 
-Incidents are automatically classified based on keywords in their description:
+Incidents are automatically classified using a pre-trained multilingual language model (XLM-RoBERTa) with zero-shot classification capabilities:
 
-- **Network Issue**: Contains "network"
-- **Server Issue**: Contains "server"
-- **Software Issue**: Contains "software"
-- **Login Issue**: Contains "login"
-- **Other**: Default category
+- The system uses natural language understanding to determine the most appropriate category
+- No keyword matching is required
+- the model understands the semantic meaning of the description
+- Current categories include: Network Issue, Server Issue, Software Issue, Login Issue, and Others
+- The classification model can be easily extended with additional categories
 
 ## Development
 
@@ -124,6 +125,14 @@ pytest tests/ -v
 ### Adding New Categories
 
 To add new incident categories, modify the `classify_category` function in `app/services/classifier.py`.
+
+## Hardware Requirements
+- The classification model runs on CPU by default
+- For improved performance, GPU acceleration can be enabled by changing the device parameter to "cuda"
+
+## Dependencies
+- Hugging Face Transformers library for the classification model
+- The first run will download the pre-trained model (approximately 1.2GB)
 
 ## Security Considerations
 
