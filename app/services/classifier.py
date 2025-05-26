@@ -46,11 +46,12 @@ def classify_category(description: str) -> str:
         "Server Issue",
         "Software Issue",
         "Login Issue",
-        "Other"
+        "Others"
     ]
     
     # Get classification from the model
     result = classifier(description, candidate_labels, multi_label=False)
+    print("Aqui: ", result)
     
     # Return the highest-confidence label
     return result['labels'][0]
