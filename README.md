@@ -1,155 +1,181 @@
-
-          
 # Incident Management System
 
-A comprehensive system for tracking, categorizing, and managing incidents.
+A comprehensive system for tracking, categorizing, and managing incidents using FastAPI and AI-powered classification.
 
 ## Overview
 
-This incident management system provides a robust platform for organizations to track and manage incidents. It includes features for incident creation, automatic categorization, status tracking, and user authentication.
+![System Architecture](https://img.shields.io/badge/architecture-modular-blue)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green)
 
-## Features
+The Incident Management System provides a robust platform for organizations to track and manage incidents with AI-powered automatic categorization. It features JWT authentication, RESTful API endpoints, and integrates with Hugging Face's XLM-RoBERTa model for multilingual incident classification.
 
-- **Incident Tracking**: Create, update, and monitor incidents
-- **Automatic Classification**: Incidents are automatically categorized based on their description
-- **User Authentication**: Secure JWT-based authentication system
-- **RESTful API**: Well-documented API endpoints for integration
+## System Architecture
+
+```mermaid
+graph TD
+    A[Client] --> B[FastAPI]
+    B --> C[Authentication]
+    B --> D[Incident Management]
+    C --> E[JWT Tokens]
+    D --> F[CRUD Operations]
+    D --> G[AI Classification]
+    F --> H[SQLite Database]
+    G --> I[XLM-RoBERTa Model]
+    H --> J[Incident Model]
+    H --> K[User Model]
+```
+
+## Database Schema
+
+```mermaid
+erDiagram
+    USER ||--o{ INCIDENT : creates
+    USER {
+        int id PK
+        string email
+        string hashed_password
+    }
+    INCIDENT {
+        int id PK
+        string title
+        string description
+        string status
+        string category
+        datetime created_at
+        datetime updated_at
+        int user_id FK
+    }
+```
+
+## Key Features
+
+- **Incident Tracking**: Full CRUD operations for incident management
+- **AI-Powered Classification**: Automatic categorization using XLM-RoBERTa model
+- **JWT Authentication**: Secure token-based user authentication
+- **RESTful API**: Well-documented endpoints following OpenAPI standards
+- **Modular Architecture**: Clean separation of concerns with models, schemas, services, and endpoints
 
 ## Technical Stack
 
-- **Backend**: FastAPI (Python)
-- **Database**: SQLite (configurable)
-- **Authentication**: JWT (JSON Web Tokens)
-- **ORM**: SQLAlchemy
-- **AI Classification**: Hugging Face Transformers with XLM-RoBERTa model
-
-## Project Structure
-
-```
-incident-management/
-├── app/
-│   ├── api/
-│   │   ├── endpoints/
-│   │   │   ├── authentication.py  # Authentication endpoints
-│   │   │   └── incidents.py       # Incident management endpoints
-│   ├── core/
-│   │   └── security.py            # Security utilities
-│   ├── db/
-│   │   ├── base.py                # SQLAlchemy base
-│   │   ├── crud.py                # Database operations
-│   │   └── session.py             # Database session management
-│   ├── models/
-│   │   ├── incident.py            # Incident database model
-│   │   └── user.py                # User database model
-│   ├── schemas/
-│   │   ├── incident.py            # Incident Pydantic schemas
-│   │   └── user.py                # User Pydantic schemas
-│   └── services/
-│       └── classifier.py          # Incident classification service
-├── tests/
-│   └── test_incident.py           # Tests for incident endpoints
-├── main.py                        # Application entry point
-├── init_db.py                     # Database initialization script
-└── pyproject.toml                 # Project dependencies and configuration
-```
+| Component          | Technology                          |
+|--------------------|-------------------------------------|
+| Backend Framework  | FastAPI                             |
+| Database           | SQLite (configurable)               |
+| ORM                | SQLAlchemy 2.0                      |
+| Authentication     | JWT with OAuth2 Password Bearer     |
+| AI Classification  | Hugging Face Transformers           |
+| Model              | XLM-RoBERTa-large-xnli              |
+| Testing            | Pytest                              |
+| Dependency Mgmt    | Poetry                              |
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/SBOLife/incident-management.git
-   cd incident-management
-   ```
+```bash
+# Clone repository
+git clone https://github.com/suender-oliveira/incident-management.git
+cd incident-management
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate
-   ```
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+.\venv\Scripts\activate   # Windows
 
-3. Install dependencies:
-   ```bash
-   poetry install
-   ```
+# Install dependencies
+poetry install
 
-4. Initialize the database:
-   ```bash
-   python init_db.py
-   ```
+# Initialize database
+python init_db.py
 
-5. Run the application:
-   ```bash
-   uvicorn main:app --reload
-   ```
+# Launch application
+uvicorn main:app --reload
+```
 
-## API Documentation
+## API Endpoints
 
-Once the application is running, you can access the API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+### Authentication
+| Method | Endpoint       | Description                |
+|--------|----------------|----------------------------|
+| POST   | `/auth/token`  | Get JWT access token       |
 
-### Key Endpoints
+### Incidents
+| Method | Endpoint       | Description                |
+|--------|----------------|----------------------------|
+| POST   | `/incidents/`  | Create new incident        |
+| GET    | `/incidents/`  | List all incidents         |
+| PUT    | `/incidents/{id}` | Update incident        |
+| DELETE | `/incidents/{id}` | Delete incident        |
 
-- **POST /auth/token**: Authenticate and get JWT token
-- **POST /incidents/**: Create a new incident
-- **GET /incidents/**: List all incidents
+## AI Classification
 
-## Authentication
+The system uses a pre-trained XLM-RoBERTa model for zero-shot classification of incidents. The model supports multiple languages and understands semantic meaning rather than simple keyword matching.
 
-The system uses JWT tokens for authentication. To access protected endpoints:
+```mermaid
+sequenceDiagram
+    Client->>+API: POST /incidents/ (description)
+    API->>+Background: Classify incident
+    Background->>+AI Model: description, candidate_labels
+    AI Model-->>-Background: classification_result
+    Background->>+Database: Update incident category
+    API-->>-Client: Incident created (201)
+```
 
-1. Obtain a token by sending a POST request to `/auth/token` with your credentials
-2. Include the token in the Authorization header of subsequent requests:
-   ```
-   Authorization: Bearer your_token_here
-   ```
-
-## Incident Classification
-
-Incidents are automatically classified using a pre-trained multilingual language model (XLM-RoBERTa) with zero-shot classification capabilities:
-
-- The system uses natural language understanding to determine the most appropriate category
-- No keyword matching is required
-- the model understands the semantic meaning of the description
-- Current categories include: Network Issue, Server Issue, Software Issue, Login Issue, and Others
-- The classification model can be easily extended with additional categories
+Supported categories:
+- Network Issue
+- Server Issue
+- Software Issue
+- Login Issue
+- Others
 
 ## Development
 
 ### Running Tests
-
 ```bash
 pytest tests/ -v
 ```
 
 ### Adding New Categories
+Modify the `candidate_labels` list in `app/services/classifier.py`:
+```python
+candidate_labels = [
+    "Network Issue",
+    "Server Issue",
+    "Software Issue",
+    "Login Issue",
+    "Others",
+    "New Category"  # Add your new category here
+]
+```
 
-To add new incident categories, modify the `classify_category` function in `app/services/classifier.py`.
+## Configuration
 
-## Hardware Requirements
-- The classification model runs on CPU by default
-- For improved performance, GPU acceleration can be enabled by changing the device parameter to "cuda"
+Environment variables (set in `app/core/config.py`):
+- `SECRET_KEY`: JWT signing key (change in production!)
+- `ALGORITHM`: JWT algorithm (default HS256)
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token validity period
+- `SQLALCHEMY_DATABASE_URL`: Database connection string
 
-## Dependencies
-- Hugging Face Transformers library for the classification model
-- The first run will download the pre-trained model (approximately 1.2GB)
+## Deployment Considerations
 
-## Security Considerations
-
-- The default SECRET_KEY should be changed in production
-- Database connection settings should be configured for your environment
-- Consider implementing rate limiting for production deployments
+- For production, consider:
+  - Using PostgreSQL instead of SQLite
+  - Configuring proper database connection pooling
+  - Implementing rate limiting
+  - Setting up proper logging
+  - Using GPU acceleration for the classifier (`device="cuda"`)
 
 ## License
 
-[APACHE 2.0](LICENSE)
+Apache License 2.0 - See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Contact
+## Support
 
-For questions or support, please open an issue on the GitHub repository.
+For issues or questions, please open an issue on the [GitHub repository](https://github.com/suender-oliveira/incident-management).
